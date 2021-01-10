@@ -1,4 +1,5 @@
 #include "client.hpp"
+#include "../sudoku-utils/log.hpp"
 
 #include <stdio.h> 
 #include <sys/socket.h> 
@@ -8,9 +9,8 @@
 #include <iostream>
 #include <csignal>
 
-_connection::_connection(int *f, log * logsystem)
+_connection::_connection(int *f, _log * logsystem)
 {
-	l=logsystem;
 	fd=f;
 }
 
@@ -34,7 +34,7 @@ int _connection::send_data(char *data, unsigned int size, int flag)//recieve dat
 	return send( *fd, data, size, flag);
 }
 
-int _client::connect4(void(*f)(_connection*), log* logsystem)
+int _client::connect4(void(*f)(_connection*), _log* logsystem)
 {
 	if (connect(fd, (struct sockaddr *)&address4, sizeof(address4)) < 0) 
     { 
@@ -47,7 +47,7 @@ int _client::connect4(void(*f)(_connection*), log* logsystem)
 	return 1;
 }
 
-int _client::connect6(void(*f)(_connection*), log* logsystem)
+int _client::connect6(void(*f)(_connection*), _log* logsystem)
 {
 	if (connect(fd, (struct sockaddr *)&address6, sizeof(address6)) < 0) 
     { 
@@ -60,7 +60,7 @@ int _client::connect6(void(*f)(_connection*), log* logsystem)
 	return 1;
 }
 
-int _client::setup(const char addr[], unsigned short port, void(*f)(_connection*), log* logsystem)
+int _client::setup(const char addr[], unsigned short port, void(*f)(_connection*), _log* logsystem)
 {
    
     address4.sin_family = AF_INET; 
