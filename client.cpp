@@ -9,9 +9,29 @@
 #include <iostream>
 #include <csignal>
 
-_connection::_connection(int *f, _log * logsystem)
+
+_connection::_connection(int *f, struct sockaddr_in addr, _log *logsystem)
 {
 	fd=f;
+	l=logsystem;
+	addr4=addr;
+	type=1;
+}
+
+_connection::_connection(int *f, struct sockaddr_in6 addr, _log *logsystem)
+{
+	fd=f;
+	l=logsystem;
+	addr6=addr;
+	type=2;
+}
+
+int _connection::reconnect(void)
+{
+	if(type==1)
+		return connect( *fd, (struct sockaddr *)&addr4, sizeof(addr4));
+	else
+		return connect( *fd, (struct sockaddr *)&addr6, sizeof(addr6));
 }
 
 int _connection::recieve_data(char *result, unsigned int size)//recieve data from server
@@ -41,7 +61,7 @@ int _client::connect4(void(*f)(_connection*), _log* logsystem)
         logsystem->write("Connection Failed"); 
         return -1; 
     } 
-	_connection conn(&fd, logsystem);
+	_connection conn(&fd, address4, logsystem);
 	f(&conn);
 	close(fd);
 	return 1;
@@ -54,7 +74,7 @@ int _client::connect6(void(*f)(_connection*), _log* logsystem)
         logsystem->write("Connection Failed");
         return -1; 
     } 
-	_connection conn(&fd, logsystem);
+	_connection conn(&fd, address6, logsystem);
 	f(&conn);
 	close(fd);
 	return 1;
