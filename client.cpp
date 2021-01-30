@@ -1,29 +1,22 @@
 #include "client.hpp"
-#include "../sudoku-utils/log.hpp"
-
-#include <stdio.h> 
-#include <sys/socket.h> 
-#include <arpa/inet.h> 
-#include <unistd.h> 
-#include <cstring> 
-#include <iostream>
-#include <csignal>
 
 
-_connection::_connection(int *f, struct sockaddr_in addr, _log *logsystem)
+_connection::_connection(int* f, struct sockaddr_in addr, _log* logsystem)
 {
-	fd=f;
-	l=logsystem;
-	addr4=addr;
-	type=1;
+	fd = f;
+	l = logsystem;
+	addr4 = addr;
+	addr6 = { 0 };
+	type = 1;
 }
 
 _connection::_connection(int *f, struct sockaddr_in6 addr, _log *logsystem)
 {
-	fd=f;
-	l=logsystem;
-	addr6=addr;
-	type=2;
+	fd = f;
+	l = logsystem;
+	addr6 = addr;
+	addr4 = { 0 };
+	type = 2;
 }
 
 int _connection::reconnect(void)
@@ -82,14 +75,23 @@ int _client::connect6(void(*f)(_connection*), _log* logsystem)
 
 int _client::setup(const char addr[], unsigned short port, void(*f)(_connection*), _log* logsystem)
 {
-   
+#ifdef WINDOWS
+	WSADATA wsaData;
+	if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0)
+	{
+		logsystem->write((std::string)"Error: WSAStartup failed");
+		std::cout << "Fatal error - can't continue - check log" << std::endl;
+		exit(EXIT_FAILURE);
+	}
+#endif
+
     address4.sin_family = AF_INET; 
     address4.sin_port = htons(port); 
     address6.sin6_family = AF_INET6; 
     address6.sin6_port = htons(port); 
-	
-    signal(SIGPIPE, SIG_IGN);//ignore SIGPIPE - you must change return value and errno, program do not exit when signal
-	
+#ifdef LINUX
+	std::signal(SIGPIPE, SIG_IGN);
+#endif	
 	
     // Convert IPv4 and IPv6 addresses from text to binary form 
     if(inet_pton(AF_INET, addr, &address4.sin_addr)>0)  

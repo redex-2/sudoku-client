@@ -25,6 +25,6 @@ int main()
 	signal(SIGINT, signalHandler);
 	logsystem.setup("client.txt");
 	logsystem.write("main-client started");
-	cli.setup("::1", 8888, test, &logsystem);
+	cli.setup("172.28.32.1", 8888, test, &logsystem);
 	return 1;
 }
